@@ -4,7 +4,6 @@ package com.rozgar.backend.auth.entity;
 import com.rozgar.backend.common.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
-import org.apache.catalina.UserDatabase;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
