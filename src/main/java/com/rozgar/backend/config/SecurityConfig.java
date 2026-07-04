@@ -5,6 +5,7 @@ import com.rozgar.backend.auth.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -30,9 +31,9 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             "/api/v1/auth/**",
-            "/api/v1/businesses",
-            "/api/v1/businesses/**",
-            "/api/v1/catalog/**",
+            "/api/v1/categories/**",
+            "/api/v1/rfq/open",
+            "/ws/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -45,6 +46,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/rfq/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/businesses/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/v1/catalog/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
