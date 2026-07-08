@@ -16,7 +16,7 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: false
 
   flyway:
