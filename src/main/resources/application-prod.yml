@@ -46,6 +46,7 @@ springdoc:
 
 logging:
   level:
-    com.rozgar: INFO
-    root: WARN
     org.flywaydb: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
+    root: WARN
+    com.rozgar: INFO
