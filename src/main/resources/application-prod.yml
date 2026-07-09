@@ -19,14 +19,6 @@ spring:
       ddl-auto: update
     show-sql: false
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    url: ${DB_URL}
-    user: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
 razorpay:
   key:
     id: ${RAZORPAY_KEY_ID}
