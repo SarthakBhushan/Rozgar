@@ -116,17 +116,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Flyway: versioned schema migrations -->
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-		</dependency>
-
-		<!-- Flyway PostgreSQL support (required for Flyway 10+) -->
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-database-postgresql</artifactId>
-		</dependency>
 
 		<!-- ────────────────────────────────────────────────
              CACHE + SESSIONS
