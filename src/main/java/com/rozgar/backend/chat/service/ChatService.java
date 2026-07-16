@@ -15,6 +15,7 @@ import com.rozgar.backend.common.exception.ForbiddenException;
 import com.rozgar.backend.common.exception.ResourceNotFoundException;
 import com.rozgar.backend.common.response.PagedResponse;
 import com.rozgar.backend.rfq.entity.Rfq;
+import com.rozgar.backend.rfq.repository.QuoteRepository;
 import com.rozgar.backend.rfq.repository.RfqRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final RfqRepository rfqRepository;
     private final BusinessRepository businessRepository;
+    private final QuoteRepository quoteRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     // ── Create or get thread for an RFQ ──────────────────────────────────────
@@ -51,20 +53,23 @@ public class ChatService {
         Rfq rfq = rfqRepository.findById(rfqId)
                 .orElseThrow(() -> new ResourceNotFoundException("RFQ", String.valueOf(rfqId)));
 
-        // Seller must have a business to open a thread
-        Business sellerBusiness = businessRepository.findByOwnerId(currentUser.getId())
-                .orElseThrow(() -> new BadRequestException(
-                        "You must have a registered business to start a negotiation thread."));
+        boolean isBuyer = rfq.getBuyerUserId().equals(currentUser.getId());
+        if(!isBuyer){
+            businessRepository.findByOwnerId(currentUser.getId())
+                    .orElseThrow(()-> new BadRequestException("You must have a registered business to start a negotiation thread."));
+        }
 
-        // Buyer business ID from RFQ (can be null for individual buyers)
-        Long buyerBusinessId = rfq.getBuyerBusinessId() != null
-                ? rfq.getBuyerBusinessId() : 0L;
+        Business sellerBusiness = isBuyer ?
+                findSellerBusinessForRfq(rfq) : businessRepository.findByOwnerId(currentUser.getId()).orElseThrow();
+
+        Long sellerUserId = isBuyer ?
+                findSellerUserIdForRfq(rfq) : currentUser.getId();
 
         ConversationThread thread = ConversationThread.builder()
                 .rfqId(rfqId)
                 .buyerUserId(rfq.getBuyerUserId())
-                .sellerUserId(currentUser.getId())
-                .buyerBusinessId(buyerBusinessId)
+                .sellerUserId(sellerUserId)
+                .buyerBusinessId(rfq.getBuyerBusinessId())
                 .sellerBusinessId(sellerBusiness.getId())
                 .build();
 
@@ -156,6 +161,27 @@ public class ChatService {
         if (!isBuyer && !isSeller) {
             throw new ForbiddenException("You are not a participant in this conversation.");
         }
+    }
+
+    private Long findSellerUserIdForRfq(Rfq rfq) {
+        return quoteRepository.findByRfqIdAndStatus(rfq.getId(),
+                        com.rozgar.backend.rfq.enums.QuoteStatus.ACCEPTED)
+                .stream().findFirst()
+                .map(q -> q.getSellerUserId())
+                .orElseThrow(() -> new BadRequestException(
+                        "No accepted quote found for this RFQ. Accept a quote first."));
+    }
+
+    private Business findSellerBusinessForRfq(Rfq rfq) {
+        Long sellerBusinessId = quoteRepository.findByRfqIdAndStatus(rfq.getId(),
+                        com.rozgar.backend.rfq.enums.QuoteStatus.ACCEPTED)
+                .stream().findFirst()
+                .map(q -> q.getSellerBusinessId())
+                .orElseThrow(() -> new BadRequestException(
+                        "No accepted quote found for this RFQ. Accept a quote first."));
+        return businessRepository.findById(sellerBusinessId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Seller business", String.valueOf(sellerBusinessId)));
     }
 }
 

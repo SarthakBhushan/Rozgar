@@ -33,7 +33,7 @@ public class ConversationThread {
     @Column(nullable = true)
     private Long sellerUserId;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long buyerBusinessId;
 
     @Column(nullable = false)
