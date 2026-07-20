@@ -67,4 +67,19 @@ public class Business {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Column(length = 20)
+    private String bankAccountNumber;
+
+    @Column(length = 11)
+    private String ifscCode;
+
+    @Column(length = 100)
+    private String accountHolderName;
+
+    @Column(length = 50)
+    private String bankName;
+
+    @Column(unique = true)
+    private String razorpayLinkedAccountId;
 }

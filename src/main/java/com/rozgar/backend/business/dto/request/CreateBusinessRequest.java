@@ -44,6 +44,18 @@ public record CreateBusinessRequest (
         @NotBlank(message = "Contact number is required")
         String phone,
 
-        String website
+        String website,
+
+        @NotNull(message = "Bank account number is required")
+        String bankAccountNumber,
+
+        @NotNull(message = "IFSC Code is required")
+        String ifscCode,
+
+        @NotNull(message = "Account name is required")
+        String accountHolderName,
+
+        @NotNull(message = "Bank name is to be filled")
+        String bankName
         )
 {}

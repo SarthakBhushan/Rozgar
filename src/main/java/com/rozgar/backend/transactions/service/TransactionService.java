@@ -254,6 +254,21 @@ public class TransactionService {
         payment.setRazorpayPaymentId(request.razorpayPaymentId());
         payment.setRazorpaySignature(request.razorpaySignature());
         payment.setStatus(PaymentStatus.SUCCESS);
+        try {
+            Business sellerBusiness = businessRepository
+                    .findById(payment.getOrder().getSellerBusinessId()).orElse(null);
+            if (sellerBusiness != null && sellerBusiness.getRazorpayLinkedAccountId() != null) {
+                BigDecimal sellerAmount = payment.getAmount()
+                        .multiply(new BigDecimal("0.97")); // 3% platform fee
+                razorpayGatewayService.transferToSeller(
+                        payment.getRazorpayPaymentId(),
+                        sellerBusiness.getRazorpayLinkedAccountId(),
+                        sellerAmount);
+            }
+        } catch (Exception e) {
+            log.error("Transfer to seller failed for order {}", payment.getOrder().getId(), e);
+            // Don't fail payment — log and handle manually
+        }
         paymentRepository.save(payment);
 
         generateInvoice(payment.getOrder());

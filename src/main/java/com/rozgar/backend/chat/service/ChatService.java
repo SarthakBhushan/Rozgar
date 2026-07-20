@@ -139,7 +139,7 @@ public class ChatService {
         // Mark messages as read when history is fetched
         messageRepository.markAllAsRead(threadId, currentUser.getId());
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAt").ascending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("sent_at").ascending());
         return PagedResponse.from(
                 messageRepository.findByThreadId(threadId, pageable)
                         .map(MessageResponse::from));

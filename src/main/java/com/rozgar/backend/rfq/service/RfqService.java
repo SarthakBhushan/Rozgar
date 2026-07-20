@@ -86,7 +86,10 @@ public class RfqService {
     //Rfq by id
     @Transactional(readOnly = true)
     public RfqResponse getById(Long id){
-        return RfqResponse.from(findByID(id));
+        Rfq rfq = rfqRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("RFQ", String.valueOf(id)));
+        rfq.getQuotes().size();
+        return RfqResponse.from(rfq);
     }
 
     //Poster rfq

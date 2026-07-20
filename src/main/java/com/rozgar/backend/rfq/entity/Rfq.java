@@ -63,7 +63,7 @@ public class Rfq {
     @Builder.Default
     private RfqStatus status = RfqStatus.OPEN;
 
-    @OneToMany(mappedBy = "rfq", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "rfq", cascade = CascadeType.ALL, orphanRemoval = true, fetch =  FetchType.EAGER)
     @Builder.Default
     private List<Quote> quotes = new ArrayList<>();
 

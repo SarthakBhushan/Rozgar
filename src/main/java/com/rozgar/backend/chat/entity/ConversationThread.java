@@ -40,7 +40,7 @@ public class ConversationThread {
     private Long sellerBusinessId;
 
     @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sent_At ASC")
+    @OrderBy("sent_at ASC")
     @Builder.Default
     private List<Message> messages = new ArrayList<>();
 

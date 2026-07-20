@@ -1,7 +1,6 @@
 package com.rozgar.backend.business.dto.request;
 
 import com.rozgar.backend.business.enums.BusinessType;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UpdateBusinessRequest(
@@ -19,5 +18,11 @@ public record UpdateBusinessRequest(
         String pincode,
         String address,
         String phone,
-        String website
+        String website,
+
+        String bankAccountNumber,
+        String ifscCode,
+        String accountHolderName,
+        String bankName
+
 ) {}
