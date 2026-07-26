@@ -29,7 +29,7 @@ public class Business {
     @Column(length = 1000)
     private String description;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BusinessType businessType;
 

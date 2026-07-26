@@ -3,6 +3,8 @@ package com.rozgar.backend.auth.filter;
 import com.rozgar.backend.auth.entity.User;
 import com.rozgar.backend.auth.service.JwtService;
 import com.rozgar.backend.auth.service.UserDetailsServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,10 +57,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
+        } catch (ExpiredJwtException e){
+            log.debug("Expired JWT on {}", request.getRequestURI());
+        } catch (JwtException e){
+            log.warn("Invalid JWT on {}: {}", request.getRequestURI(), e.getMessage());
         } catch (Exception e){
-            log.warn("JWT filter error on {}: {}",request.getRequestURI(), e.getMessage());
+            log.error("JWT filter unexpected error on {}", request.getRequestURI(), e);
         }
-
         filterChain.doFilter(request, response);
     }
 }
