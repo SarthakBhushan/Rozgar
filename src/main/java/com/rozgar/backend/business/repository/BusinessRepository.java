@@ -6,6 +6,8 @@ import com.rozgar.backend.business.enums.BusinessType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -19,13 +21,13 @@ public interface BusinessRepository extends JpaRepository<Business, Long> {
 
     boolean existsByPanNumber(String panNumber);
 
-    Page<Business> findByBusinessTypeAndStatus(
-            BusinessType businessType, BusinessStatus status, Pageable pageable
+    @Query("SELECT b FROM Business b WHERE b.status = :status " +
+            "AND (:type IS NULL OR b.businessType = :type) " +
+            "AND (:city IS NULL OR LOWER(b.city) = LOWER(:city))")
+    Page<Business> searchBusinesses(
+            @Param("status") BusinessStatus status,
+            @Param("type") BusinessType type,
+            @Param("city") String city,
+            Pageable pageable
     );
-
-    Page<Business> findByCityIgnoreCaseAndStatus(
-            String city, BusinessStatus status, Pageable pageable
-    );
-
-    Page<Business> findByStatus(BusinessStatus status, Pageable pageable);
 }

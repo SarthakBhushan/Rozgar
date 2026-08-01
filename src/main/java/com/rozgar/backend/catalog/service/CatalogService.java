@@ -17,6 +17,8 @@ import com.rozgar.backend.common.exception.ForbiddenException;
 import com.rozgar.backend.common.exception.ResourceNotFoundException;
 import com.rozgar.backend.common.response.PagedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,9 +33,8 @@ public class CatalogService {
     private final CategoryRepository categoryRepository;
     private final BusinessRepository businessRepository;
 
-    // ── Add item ─────────────────────────────────────────────────────────────
-
     @Transactional
+    @CacheEvict(value = "catalogItems", allEntries = true)
     public CatalogItemResponse addItem(CreateCatalogItemRequest request, User currentUser) {
         Business business = getOwnedBusiness(currentUser);
 
@@ -51,8 +52,7 @@ public class CatalogService {
                 .category(category)
                 .pricePerUnit(request.pricePerUnit())
                 .unit(request.unit())
-                .minOrderQuantity(request.minOrderQuantity() != null
-                        ? request.minOrderQuantity() : 1)
+                .minOrderQuantity(request.minOrderQuantity() != null ? request.minOrderQuantity() : 1)
                 .businessId(business.getId())
                 .status(CatalogItemStatus.ACTIVE)
                 .build();
@@ -60,16 +60,14 @@ public class CatalogService {
         return CatalogItemResponse.from(catalogItemRepository.save(item));
     }
 
-    // ── Get single item ───────────────────────────────────────────────────────
-
     @Transactional(readOnly = true)
+    @Cacheable(value = "catalogItemDetails", key = "#id")
     public CatalogItemResponse getById(Long id) {
         return CatalogItemResponse.from(findById(id));
     }
 
-    // ── Update item ───────────────────────────────────────────────────────────
-
     @Transactional
+    @CacheEvict(value = {"catalogItems", "catalogItemDetails"}, key = "#id", allEntries = true)
     public CatalogItemResponse updateItem(Long id, UpdateCatalogItemRequest request, User currentUser) {
         CatalogItem item = findById(id);
         Business business = getOwnedBusiness(currentUser);
@@ -96,9 +94,8 @@ public class CatalogService {
         return CatalogItemResponse.from(catalogItemRepository.save(item));
     }
 
-    // ── Delete item ───────────────────────────────────────────────────────────
-
     @Transactional
+    @CacheEvict(value = {"catalogItems", "catalogItemDetails"}, key = "#id", allEntries = true)
     public void deleteItem(Long id, User currentUser) {
         CatalogItem item = findById(id);
         Business business = getOwnedBusiness(currentUser);
@@ -110,8 +107,6 @@ public class CatalogService {
         catalogItemRepository.delete(item);
     }
 
-    // ── My catalog (owner — all statuses) ────────────────────────────────────
-
     @Transactional(readOnly = true)
     public PagedResponse<CatalogItemResponse> getMyCatalog(User currentUser, int page, int size) {
         Business business = getOwnedBusiness(currentUser);
@@ -122,15 +117,9 @@ public class CatalogService {
                         .map(CatalogItemResponse::from));
     }
 
-    // ── Business catalog (buyer — active only) ────────────────────────────────
-
     @Transactional(readOnly = true)
+    @Cacheable(value = "catalogItems", key = "'biz_' + #businessId + '_p' + #page + '_s' + #size")
     public PagedResponse<CatalogItemResponse> getBusinessCatalog(Long businessId, int page, int size) {
-        // Verify business exists
-        businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Business", String.valueOf(businessId)));
-
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return PagedResponse.from(
                 catalogItemRepository
@@ -138,14 +127,9 @@ public class CatalogService {
                         .map(CatalogItemResponse::from));
     }
 
-    // ── Browse by category ────────────────────────────────────────────────────
-
     @Transactional(readOnly = true)
+    @Cacheable(value = "catalogItems", key = "'cat_' + #categoryId + '_p' + #page + '_s' + #size")
     public PagedResponse<CatalogItemResponse> browseByCategory(Long categoryId, int page, int size) {
-        categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Category", String.valueOf(categoryId)));
-
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return PagedResponse.from(
                 catalogItemRepository
@@ -153,9 +137,8 @@ public class CatalogService {
                         .map(CatalogItemResponse::from));
     }
 
-    // ── Browse by item type ───────────────────────────────────────────────────
-
     @Transactional(readOnly = true)
+    @Cacheable(value = "catalogItems", key = "'type_' + #type + '_p' + #page + '_s' + #size")
     public PagedResponse<CatalogItemResponse> browseByType(CatalogItemType type, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return PagedResponse.from(
@@ -164,12 +147,9 @@ public class CatalogService {
                         .map(CatalogItemResponse::from));
     }
 
-    // ── Internal helpers
-
     private CatalogItem findById(Long id) {
         return catalogItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "CatalogItem", String.valueOf(id)));
+                .orElseThrow(() -> new ResourceNotFoundException("CatalogItem", String.valueOf(id)));
     }
 
     private Business getOwnedBusiness(User currentUser) {

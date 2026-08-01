@@ -14,6 +14,7 @@ import com.rozgar.backend.common.exception.ForbiddenException;
 import com.rozgar.backend.common.exception.ResourceNotFoundException;
 import com.rozgar.backend.common.response.PagedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -104,28 +105,14 @@ public class BusinessService {
     @Transactional(readOnly = true)
     public PagedResponse<BusinessResponse> browse(
             String city, BusinessType type, int page, int size
-    ){
+    ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        if(type!=null && city!=null){
-            return PagedResponse.from(
-                    businessRepository.findByBusinessTypeAndStatus(
-                            type, BusinessStatus.VERIFIED, pageable).map(BusinessResponse::from));
-        }
 
-        if(type!=null){
-            return PagedResponse.from(
-                    businessRepository.findByBusinessTypeAndStatus(
-                            type, BusinessStatus.VERIFIED, pageable).map(BusinessResponse::from));
-        }
+        Page<BusinessResponse> businesses = businessRepository
+                .searchBusinesses(BusinessStatus.VERIFIED, type, city, pageable)
+                .map(BusinessResponse::from);
 
-        if(city!=null){
-            return PagedResponse.from(
-                    businessRepository.findByCityIgnoreCaseAndStatus(
-                            city, BusinessStatus.VERIFIED, pageable).map(BusinessResponse::from));
-        }
-
-        return PagedResponse.from(
-                businessRepository.findByStatus(BusinessStatus.VERIFIED, pageable).map(BusinessResponse::from));
+        return PagedResponse.from(businesses);
     }
 
     private Business findById(Long id){
