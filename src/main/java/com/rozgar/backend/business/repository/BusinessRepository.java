@@ -23,7 +23,7 @@ public interface BusinessRepository extends JpaRepository<Business, Long> {
 
     @Query("SELECT b FROM Business b WHERE b.status = :status " +
             "AND (:type IS NULL OR b.businessType = :type) " +
-            "AND (:city IS NULL OR LOWER(b.city) = LOWER(:city))")
+            "AND (:city IS NULL OR LOWER(b.city) = LOWER(CAST(:city AS string)))")
     Page<Business> searchBusinesses(
             @Param("status") BusinessStatus status,
             @Param("type") BusinessType type,
