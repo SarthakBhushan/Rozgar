@@ -54,6 +54,10 @@ public class BusinessService {
                 .address(request.address())
                 .phone(request.phone())
                 .website(request.website())
+                .bankAccountNumber(request.bankAccountNumber())
+                .ifscCode(request.ifscCode())
+                .accountHolderName(request.accountHolderName())
+                .bankName(request.bankName())
                 .ownerId(currentUser.getId())
                 .status(BusinessStatus.PENDING)
                 .build();
