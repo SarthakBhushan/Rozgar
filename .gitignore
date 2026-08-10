@@ -37,6 +37,9 @@ build/
 ### VS Code ###
 .vscode/
 
-###Local Dev cofig###
+### Local Dev config ###
 src/main/resources/application-dev.yml
 src/main/resources/application.yml
+
+### Seed Output Data ###
+seed_data_output.json
