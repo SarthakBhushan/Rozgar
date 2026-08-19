@@ -62,11 +62,21 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Access denied.", "FORBIDDEN"));
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMessage());
+        String causeMsg = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("Database constraint error: " + causeMsg, "DATA_INTEGRITY_VIOLATION"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception ex) {
         log.error("Unhandled exception", ex);
+        String msg = ex.getMessage() != null ? ex.getClass().getSimpleName() + ": " + ex.getMessage() : ex.getClass().getSimpleName();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("An unexpected error occurred."));
+                .body(ApiResponse.error(msg));
     }
 }
